@@ -8,3 +8,6 @@ The following Python libraries are required
 
     python -m pip install kafka-python
 
+2. requests
+
+    python -m pip install requests
