@@ -2,7 +2,7 @@ from pathlib import Path
 import os.path
 import ast
 from kafka import KafkaConsumer, TopicPartition
-from kafka_mtc.core import MTCDeserializersMixin, ImproperlyConfigured
+from mtc2kafka.core import MTCDeserializersMixin, ImproperlyConfigured
 
 
 class CSVSinkConnector(MTCDeserializersMixin):

@@ -3,7 +3,7 @@ import requests
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
 from kafka import TopicPartition
-from kafka_mtc.core import MTCDocumentMixing, MTCSerializersMixin, ImproperlyConfigured
+from mtc2kafka.core import MTCDocumentMixing, MTCSerializersMixin, ImproperlyConfigured
 
  
 
