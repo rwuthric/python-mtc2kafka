@@ -3,6 +3,7 @@ import requests
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
 from kafka import TopicPartition
+from kafka import KafkaClient
 from mtc2kafka.core import MTCDocumentMixing, MTCSerializersMixin, ImproperlyConfigured
 
  
@@ -51,7 +52,18 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             return -1
         root = ET.fromstring(xml_data)
         return self.get_mtc_header(root).attrib['instanceId']
-  
+    
+    
+    def get_agent_devices(self):
+        """ Returns a list of devices handled by the MTConnect agent """
+        try:
+            xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
+        except requests.exceptions.ConnectionError:
+            print("ERROR - Could not connect to agent")
+            return -1
+        root = ET.fromstring(xml_data)
+        return self.get_mtc_DeviceStreams(root)
+        
   
     def get_agent_topic(self):
         """ Returns the Kafka topic of the MTConnect agent """
@@ -66,6 +78,11 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         agent_topic = self.get_agent_topic()
         part = TopicPartition(topic=agent_topic, partition=0)
         consumer = KafkaConsumer(agent_topic, bootstrap_servers=self.bootstrap_servers)
+        
+        if consumer.end_offsets([part])[part] == 0:
+            return 0,0
+        #print(consumer.beginning_offsets([part]))
+        
         # poll() is needed in order to force assigning partitions
         # Reason: KafkaConsumer constructor is asynchronous. When calling seek() it is likely
         #         the partition is not yet assigned
