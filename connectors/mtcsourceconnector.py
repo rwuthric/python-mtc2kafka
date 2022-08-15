@@ -79,13 +79,13 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         part = TopicPartition(topic=agent_topic, partition=0)
         consumer = KafkaConsumer(agent_topic, bootstrap_servers=self.bootstrap_servers)
         
-        # checks if agent_topic is an empty topic
+        # Checks if agent_topic is an empty topic
         if consumer.beginning_offsets([part])[part] == consumer.end_offsets([part])[part]:
             return 0,0
        
         # poll() is needed in order to force assigning partitions
         # Reason: KafkaConsumer constructor is asynchronous. When calling seek() it is likely
-        #         the partition is not yet assigned
+        #         that the partition is not yet assigned
         consumer.poll()
         try:
             consumer.seek(part, consumer.end_offsets([part])[part]-1)
@@ -103,6 +103,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         """
         Stores agent instanceId and lastSequence to Kafka
         Stores information only if different than latest stored info in Kafka
+        Forces the use of partition 0 in the agent topic
         """
         instanceId = mtc_header.attrib['instanceId']
         lastSequence = mtc_header.attrib['lastSequence']
@@ -115,19 +116,22 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             try:
                 record_metadata = future.get(timeout=10)
             except KafkaError:
-                # Decide what to do if produce request failed...
+                # Decide what to do if request failed
                 log.exception()
                 pass
             prod.close()
             
             
     def stream_mtc_dataItems_to_Kafka(self, interval=1000):
-        """ Streams MTConnect DataItems to Kafka to their respective topics """
+        """
+        Streams MTConnect DataItems to Kafka to their respective topics
+        Forces the use of partition 0 in the topic
+        """
         producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
                                  key_serializer=self.mtc_dataItem_key_serializer,
                                  value_serializer=self.mtc_dataItem_value_serializer)
         
-        # computes start_sequence
+        # Computes start_sequence
         instanceID, sequence = self.get_latest_stored_agent_instance()
         if self.get_agent_instanceId()==instanceID:
             start_sequence = sequence + 1
@@ -160,7 +164,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                         try:
                             record_metadata = future.get(timeout=10)
                         except KafkaError:
-                            # Decide what to do if producer request failed...
+                            # Decide what to do if request failed
                             log.exception()
                             pass
                 self.store_agent_instance(self.get_mtc_header(root))
