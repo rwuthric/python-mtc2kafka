@@ -79,10 +79,10 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         part = TopicPartition(topic=agent_topic, partition=0)
         consumer = KafkaConsumer(agent_topic, bootstrap_servers=self.bootstrap_servers)
         
-        if consumer.end_offsets([part])[part] == 0:
+        # checks if agent_topic is an empty topic
+        if consumer.beginning_offsets([part])[part] == consumer.end_offsets([part])[part]:
             return 0,0
-        #print(consumer.beginning_offsets([part]))
-        
+       
         # poll() is needed in order to force assigning partitions
         # Reason: KafkaConsumer constructor is asynchronous. When calling seek() it is likely
         #         the partition is not yet assigned
@@ -160,7 +160,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                         try:
                             record_metadata = future.get(timeout=10)
                         except KafkaError:
-                            # Decide what to do if produce request failed...
+                            # Decide what to do if producer request failed...
                             log.exception()
                             pass
                 self.store_agent_instance(self.get_mtc_header(root))
