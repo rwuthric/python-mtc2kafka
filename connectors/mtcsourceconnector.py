@@ -125,13 +125,17 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
     def stream_mtc_dataItems_to_Kafka(self, interval=1000):
         """
         Streams MTConnect DataItems to Kafka to their respective topics
+        Topic is the MTConnect UUID of the device
         Forces the use of partition 0 in the topic
+        
+        Streams from the sequence of the agent that was last stored in Kafka
+        In case the agent was restarded since, will stream from the first sequence
         """
         producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
                                  key_serializer=self.mtc_dataItem_key_serializer,
                                  value_serializer=self.mtc_dataItem_value_serializer)
         
-        # Computes start_sequence
+        # Computes start_sequence to stream from
         instanceID, sequence = self.get_latest_stored_agent_instance()
         if self.get_agent_instanceId()==instanceID:
             start_sequence = sequence + 1
