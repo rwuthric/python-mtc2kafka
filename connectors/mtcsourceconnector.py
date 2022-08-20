@@ -78,7 +78,20 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         agent_topic = self.get_agent_topic()
         part = TopicPartition(topic=agent_topic, partition=0)
         consumer = KafkaConsumer(agent_topic, bootstrap_servers=self.bootstrap_servers)
-        
+        if agent_topic not in consumer.topics():
+            prod = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+            future = prod.send(self.get_agent_topic(), partition=0,
+                               key=str.encode('0'),
+                               value=str.encode('0'))
+            try:
+                future.get(timeout=10)
+            except KafkaError:
+                # Decide what to do if request failed
+                log.exception()
+                pass
+            prod.close()
+            return 0,0
+
         # Checks if agent_topic is an empty topic
         if consumer.beginning_offsets([part])[part] == consumer.end_offsets([part])[part]:
             return 0,0
