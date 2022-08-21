@@ -154,6 +154,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             start_sequence = sequence + 1
         else:
             start_sequence = 1
+            instanceID = self.get_agent_instanceId()
             
         agent_url = self.get_agent_baseUrl()
         print("Streaming from " + agent_url + '&from=' + str(start_sequence))
