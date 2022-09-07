@@ -7,18 +7,18 @@ from mtc2kafka.core import MTCDeserializersMixin, ImproperlyConfigured
 
 class CSVSinkConnector(MTCDeserializersMixin):
     """
-    Kafka sink connector to CSV file
-    Safes the Kafka messages with a key in 'keys' to CSV files in 'storageFolder'
+    Kafka sink connector to CSV files
+    Saves Kafka messages with a key in 'keys' to CSV files in 'storageFolder'
     
     Children have to define the following attributes:
     
      bootstrap_servers = ['kafka_server1:9092']   # List of Kafka bootstrap servers
      topic = 'my_topic'                           # Kafka topic to read from
-     keys = ['key1' , 'key2']                     # List of keys that will be recorded
-     meta_data = ['key3', 'key4']                 # List of keys that will be recorded as meta data
-     storageFolder = '/path/to/storage/folder'    # Full path where the data should be stored to
-     start_key = 'start'                          # Key that will trigger start of recording
-     stop_key = 'stop'                            # Key that will trigger stop of recording
+     keys = ['key1' , 'key2']                     # List of keys that will be saved
+     meta_data = ['key3', 'key4']                 # List of keys that will be saved as meta data
+     storageFolder = '/path/to/storage/folder'    # Full path where the data should be saved to
+     start_key = 'start'                          # Key that will trigger start of saving
+     stop_key = 'stop'                            # Key that will trigger stop of saving
      
     
     Children can optionnaly define the following attributes:
