@@ -9,9 +9,9 @@ class CSVSinkConnector(MTCDeserializersMixin):
     """
     Kafka sink connector to CSV files
     Saves Kafka messages with a key in 'keys' to CSV files in 'storageFolder'
-    
+
     Children have to define the following attributes:
-    
+
      bootstrap_servers = ['kafka_server1:9092']   # List of Kafka bootstrap servers
      topic = 'my_topic'                           # Kafka topic to read from
      keys = ['key1' , 'key2']                     # List of keys that will be saved
@@ -19,14 +19,14 @@ class CSVSinkConnector(MTCDeserializersMixin):
      storageFolder = '/path/to/storage/folder'    # Full path where the data should be saved to
      start_key = 'start'                          # Key that will trigger start of saving
      stop_key = 'stop'                            # Key that will trigger stop of saving
-     
-    
+
+
     Children can optionnaly define the following attributes:
-    
+
      history_file = 'name_of_file'                # Full name (including path) of file for history data
                                                   # If none is defined will assign one based on class name in current path
     """
-    
+
     # Attributes to be defined by children
     bootstrap_servers = None
     topic = None
@@ -36,49 +36,44 @@ class CSVSinkConnector(MTCDeserializersMixin):
     start_key = None
     stop_key = None
     history_file = None
-    
+
     # Internal constants
     SAVE_MODE_SINGLE_FILE = 1
     SAVE_MODE_MULTIPLE_FILES = 2
-    
 
     def __init__(self):
-        """ Constructor """       
+        """ Constructor """
         # Configuration validations
-        if self.bootstrap_servers == None:
+        if self.bootstrap_servers is None:
             raise ImproperlyConfigured("CSVSinkConnector requires the attribute 'bootstrap_servers' to be defined")
-        if self.topic == None:
+        if self.topic is None:
             raise ImproperlyConfigured("CSVSinkConnector requires the attribute 'topic' to be defined")
-        if self.storageFolder == None:
+        if self.storageFolder is None:
             raise ImproperlyConfigured("CSVSinkConnector requires the attribute 'storageFolder' to be defined")
-        if self.start_key == None:
+        if self.start_key is None:
             raise ImproperlyConfigured("CSVSinkConnector requires the attribute 'start_key' to be defined")
-        if self.stop_key == None:
+        if self.stop_key is None:
             raise ImproperlyConfigured("CSVSinkConnector requires the attribute 'topic' to be defined")
         # Initial configurations
         self.files = None
-        if self.history_file == None:
+        if self.history_file is None:
             self.history_file = type(self).__name__
         self.load_current()
         print(str(self.current))
-        
-        
-    def store_to_single_file(self, mode = 'w'):
+
+    def store_to_single_file(self, mode='w'):
         """ Stores DataItems with a key in keys to a single file in storageFolder """       
         self.store(self.SAVE_MODE_SINGLE_FILE, mode)
     
-    
-    def store_to_multiple_files(self, mode = 'w'):
+    def store_to_multiple_files(self, mode='w'):
         """ Stores DataItems with a key in keys to mutiple files in storageFolder """           
         self.store(self.SAVE_MODE_MULTIPLE_FILES, mode)
-          
-        
+
     def save_current(self):
         """ Saves current to history_file """
         f = open(self.history_file, 'w')
         f.write(str(self.current))
         f.close()
-        
         
     def load_current(self):
         """ Loads current from history_file """
@@ -96,16 +91,14 @@ class CSVSinkConnector(MTCDeserializersMixin):
         if 'timestamp' not in self.current:
             self.current['timestamp'] = 'UNAVAILABLE'
         self.previous = self.current.copy()
-        
-        
+
     def get_storage_folder(self):
-        """ returns folder where data will be stored and creates it if needed """
+        """ Returns folder where data will be stored and creates it if needed """
         folder = os.path.join(self.storageFolder, self.current[self.start_key])
         Path(folder).mkdir(parents=True, exist_ok=True)
         return folder
-        
-        
-    def open_save_files(self, save_mode, mode = 'w'):
+
+    def open_save_files(self, save_mode, mode='w'):
         """ Opens files for saving """
         if save_mode == self.SAVE_MODE_SINGLE_FILE:
             self.files = open(self.get_storage_folder() + '/data.csv', mode)
@@ -127,10 +120,9 @@ class CSVSinkConnector(MTCDeserializersMixin):
                 self.files[key].write("%s,%s\n" % (self.current['timestamp'], self.current[key]))
                 self.files[key].flush()
                     
-                    
     def close_save_files(self, save_mode):
         """ Closes files for saving """
-        if self.files == None:
+        if self.files is None:
             # files were never opened or already closed once
             return
         if save_mode == self.SAVE_MODE_SINGLE_FILE:
@@ -143,37 +135,35 @@ class CSVSinkConnector(MTCDeserializersMixin):
             for key in self.keys:
                 self.files[key].close()
         self.files = None
-                
-                
-    def save_meta_data(self, mode = 'w'):
+
+    def save_meta_data(self, mode='w'):
         """ Saves meta_data """
         f = open(os.path.join(self.get_storage_folder(), 'meta_data.csv'), mode)
         for key in self.meta_data:
             f.write("%s,%s\n" % (key, self.current[key]))
         f.close()
-        
-    
-    def store(self, save_mode, mode = 'w'):
+
+    def store(self, save_mode, mode='w'):
         """ Stores DataItems with a key in keys to the storageFolder """
         print("Storing dataItems " + str(self.keys) + " from topic " + self.topic)
         print("Destination : " + self.storageFolder)
-        
+
         part = TopicPartition(topic=self.topic, partition=0)
         consumer = KafkaConsumer(self.topic,
                                  bootstrap_servers=self.bootstrap_servers,
                                  auto_offset_reset='latest',
                                  key_deserializer=self.mtc_key_deserializer,
                                  value_deserializer=self.mtc_value_deserializer)
-        
+
         if 'kafka_offset' in self.current:
             consumer.topics()
             consumer.poll()
             consumer.seek(part, self.current['kafka_offset']+1)
-        
+
         record = False
         for message in consumer:
             print("%s\t%s=%s" % (message.headers, message.key, message.value['value']))
-            
+
             # keeps history of meta_data and data
             if message.key in self.meta_data or message.key in self.keys:
                 self.previous = self.current.copy()
@@ -181,15 +171,15 @@ class CSVSinkConnector(MTCDeserializersMixin):
                 self.current['kafka_offset'] = message.offset
                 self.current['timestamp'] = message.value['attributes']['timestamp']
                 self.save_current()
-                
+
             # signal for stop recording recieved
-            if message.key==self.stop_key:
+            if message.key == self.stop_key:
                 print("Stop storing")
                 self.close_save_files(save_mode)
                 record = False
-                
+
             # signal for start recording recieved
-            if message.key==self.start_key and message.value['value']!='UNAVAILABLE':
+            if message.key == self.start_key and message.value['value'] != 'UNAVAILABLE':
                 print("Start storing")
                 self.save_meta_data(mode)
                 self.open_save_files(save_mode, mode)
@@ -207,4 +197,3 @@ class CSVSinkConnector(MTCDeserializersMixin):
                             self.files.write(",%s" % (self.previous[key]))
                         self.files.write("\n")
                         self.files.flush()
-    

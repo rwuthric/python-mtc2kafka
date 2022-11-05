@@ -1,6 +1,6 @@
 class MTCSerializersMixin():
     """ A mixin for Kafka MTConnect DataItems serializers """
-    
+
     def mtc_dataItem_key_serializer(self, dataItem):
         """ Kafka key serializer for MTConnect DataItems """
         return str.encode(dataItem.attrib['dataItemId'])
