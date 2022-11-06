@@ -28,6 +28,6 @@ class MTCDocumentMixing():
         Returns MTConnect DataItems below xml_node
         Sorts the DataItems by sequence
         """
-        dataItems = xml_node.findall(".//mtc:*[@sequence]", self.mtc_ns)
+        dataItems = xml_node.findall(".//*[@sequence]")
         self.sortChildrenBy(dataItems, 'sequence')
         return dataItems
