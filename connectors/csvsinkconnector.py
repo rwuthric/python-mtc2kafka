@@ -80,7 +80,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
         """
         self.store(self.SAVE_MODE_MULTIPLE_FILES, mode)
 
-    def print_message(message):
+    def print_message(self, message):
         """
         Prints information in message
         Can be overiden by children to presonalize format
