@@ -73,12 +73,19 @@ class CSVSinkConnector(MTCDeserializersMixin):
         self.store(self.SAVE_MODE_SINGLE_FILE, mode)
 
     def store_to_multiple_files(self, mode='w'):
-        """ 
+        """
         Stores DataItems with a key in keys to mutiple files in storageFolder
         If mode='w' (default) an new file is created for each key
         If mode='a' data are appended to existing files
         """
         self.store(self.SAVE_MODE_MULTIPLE_FILES, mode)
+
+    def print_message(message):
+        """
+        Prints information in message
+        Can be overiden by children to presonalize format
+        """
+        print("%s\t%s=%s" % (message.headers, message.key, message.value['value']))
 
     def load_current(self):
         """
@@ -183,7 +190,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
 
         record = False
         for message in consumer:
-            print("%s\t%s=%s" % (message.headers, message.key, message.value['value']))
+            self.print_message(message)
 
             # copy 'current' to 'previous', updates current state and saves it
             if message.key in self.meta_data or message.key in self.keys:
