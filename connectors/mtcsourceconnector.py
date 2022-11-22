@@ -1,9 +1,13 @@
 import xml.etree.ElementTree as ET
 import requests
+import rsa
 from kafka import KafkaConsumer
 from kafka import KafkaProducer
 from kafka import TopicPartition
-from mtc2kafka.core import MTCDocumentMixing, MTCSerializersMixin, ImproperlyConfigured
+from kafka.errors import KafkaError
+from mtc2kafka.core import MTCDocumentMixing
+from mtc2kafka.core import MTCSerializersMixin
+from mtc2kafka.core import ImproperlyConfigured
 
 
 class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
@@ -15,11 +19,15 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
 
      bootstrap_servers = ['kafka_server1:9092']  # List of Kafka bootstrap servers
      mtc_agent = 'my_agent:5000'                 # MTConnect agent
+     privateKeyFile ='path/to/privateKey.em'     # Private key to sign Kafka headers
+     publicKeyFile ='path/to/publicKey.em'       # Private key to validate KafkaHeaders
 
     """
 
     bootstrap_servers = None
     mtc_agent = None
+    privateKeyFile = None
+    publicKeyFile = None
 
     # colors for print
     END = '\033[0m'
@@ -29,10 +37,18 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         """ Constructor """
         super(MTCSourceConnector, self).__init__()
         # Configuration validations
-        if self.bootstrap_servers == None:
+        if self.bootstrap_servers is None:
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'bootstrap_servers' to be defined")
-        if self.mtc_agent == None:
+        if self.mtc_agent is None:
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'mtc_agent' to be defined")
+        if self.privateKeyFile is None:
+            raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'privateKeyFile' to be defined")
+        if self.publicKeyFile is None:
+            raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'publicKeyFile' to be defined")
+        with open(self.privateKeyFile, mode='rb') as keyFile:
+            self.privateKey = rsa.PrivateKey.load_pkcs1(keyFile.read())
+        with open(self.publicKeyFile, mode='rb') as keyFile:
+            self.publicKey = rsa.PublicKey.load_pkcs1(keyFile.read())
 
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """
@@ -40,8 +56,8 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
  
     def get_agent_instanceId(self):
         """
-        Returns the current MTConnect agent instanceId 
-        or -1 if no connection could be established
+        Returns the current MTConnect agent instanceId
+        or -1 if connection could not be established
         """
         try:
             xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
@@ -64,6 +80,32 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
     def get_agent_topic(self):
         """ Returns the Kafka topic of the MTConnect agent """
         return self.mtc_agent.replace(":", "_")
+
+    def get_latest_stored_kafka_offset(self, topic):
+        """
+        Returns offset of latest recored stored in kafka
+        Returns 0 if none was ever stored
+        """
+        part = TopicPartition(topic=topic, partition=0)
+        consumer = KafkaConsumer(topic, bootstrap_servers=self.bootstrap_servers)
+
+        # checks if topic actualy exists
+        if topic not in consumer.topics():
+            return 0
+        # Checks if topic is an empty topic
+        if consumer.beginning_offsets([part])[part] == consumer.end_offsets([part])[part]:
+            return 0
+
+        # gets latest offset
+        consumer.poll()
+        try:
+            consumer.seek(part, consumer.end_offsets([part])[part]-1)
+            last_message = next(consumer)
+            offset = last_message.offset
+        except AssertionError:
+            offset = 0
+        consumer.close()
+        return offset
 
     def get_latest_stored_agent_instance(self):
         """
@@ -89,11 +131,11 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
 
         # Checks if agent_topic is an empty topic
         if consumer.beginning_offsets([part])[part] == consumer.end_offsets([part])[part]:
-            return 0,0
+            return 0, 0
 
         # poll() is needed in order to force assigning partitions
-        # Reason: KafkaConsumer constructor is asynchronous. When calling seek() it is likely
-        #         that the partition is not yet assigned
+        # Reason: KafkaConsumer constructor is asynchronous. When calling seek()
+        #         it is likely that the partition is not yet assigned
         consumer.poll()
         try:
             consumer.seek(part, consumer.end_offsets([part])[part]-1)
@@ -121,7 +163,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                                key=str.encode(instanceId),
                                value=str.encode(lastSequence))
             try:
-                record_metadata = future.get(timeout=10)
+                future.get(timeout=10)
             except KafkaError:
                 # Decide what to do if request failed
                 log.exception()
@@ -133,6 +175,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         Streams MTConnect DataItems to Kafka to their respective topics
         Topic is the MTConnect UUID of the device
         Forces the use of partition 0 in the topic
+        Signs the message
 
         Streams from the sequence of the agent that was last stored in Kafka
         In case the agent was restarded since, will stream from the first sequence
@@ -155,6 +198,17 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         req = requests.get(agent_url + '/sample?interval=' + str(interval) +
                            '&from=' + str(start_sequence), stream=True)
 
+        # Determines devices handled by MTConnect agent
+        print("Devices handled by MTConnect agent:")
+        last_offset = {}
+        for device in self.get_agent_devices():
+            if "uuid" not in device.attrib:
+                continue
+            print(self.DEVICE, device.tag, device.attrib, self.END)
+            uuid = device.attrib['uuid']
+            last_offset[uuid] = str(self.get_latest_stored_kafka_offset(uuid)).encode()
+            print(last_offset[uuid])
+
         for line in req.iter_lines(delimiter=b"</MTConnectStreams>"):
             if line:
                 resp = line.decode()
@@ -168,12 +222,19 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                     uuid = device.attrib['uuid']
                     for item in self.get_dataItems(device):
                         print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
+                        # message = str.encode(self.mtc_agent) + str.encode(str(instanceID)) + str.encode(item.attrib['sequence'])
                         header = [("agent", str.encode(self.mtc_agent)),
                                   ("instanceID", str.encode(str(instanceID))),
-                                  ("sequence", str.encode(item.attrib['sequence']))]
-                        future = producer.send(uuid, partition=0, headers=header, key=item, value=item)
+                                  ("sequence", str.encode(item.attrib['sequence'])),
+                                  ("signature", rsa.sign(last_offset[uuid], self.privateKey, 'SHA-1'))]
+                        future = producer.send(uuid, partition=0,
+                                               headers=header,
+                                               key=item,
+                                               value=item)
                         try:
                             record_metadata = future.get(timeout=10)
+                            last_offset[uuid] = str(record_metadata.offset).encode()
+                            print(last_offset[uuid])
                         except KafkaError:
                             # Decide what to do if request failed
                             log.exception()
