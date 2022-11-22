@@ -20,7 +20,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
      bootstrap_servers = ['kafka_server1:9092']  # List of Kafka bootstrap servers
      mtc_agent = 'my_agent:5000'                 # MTConnect agent
      privateKeyFile ='path/to/privateKey.em'     # Private key to sign Kafka headers
-     publicKeyFile ='path/to/publicKey.em'       # Private key to validate KafkaHeaders
+     publicKeyFile ='path/to/publicKey.em'       # Private key to validate Kafka headers
 
     """
 
@@ -207,7 +207,6 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             print(self.DEVICE, device.tag, device.attrib, self.END)
             uuid = device.attrib['uuid']
             last_offset[uuid] = str(self.get_latest_stored_kafka_offset(uuid)).encode()
-            print(last_offset[uuid])
 
         for line in req.iter_lines(delimiter=b"</MTConnectStreams>"):
             if line:
@@ -234,7 +233,6 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                         try:
                             record_metadata = future.get(timeout=10)
                             last_offset[uuid] = str(record_metadata.offset).encode()
-                            print(last_offset[uuid])
                         except KafkaError:
                             # Decide what to do if request failed
                             log.exception()
