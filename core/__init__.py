@@ -3,4 +3,5 @@ from .deserializers import mtc_key_deserializer, mtc_value_deserializer, MTCDese
 from .mtcdocument import MTCDocumentMixing
 from .exceptions import ImproperlyConfigured
 from .mtckafkaconsumer import MTCKafkaConsumer
+from .mtcdeviceskafkaconsumer import MTCDevicesKafkaConsumer
 from .keypair import generateKeyPair
