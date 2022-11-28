@@ -167,7 +167,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
         """ Saves meta_data """
         f = open(os.path.join(self.get_storage_folder(), 'meta_data.csv'), mode)
         for ID in self.meta_data:
-            f.write("%s,%s\n" % (id, self.current[ID]))
+            f.write("%s,%s\n" % (ID, self.current[ID]))
         f.close()
 
     def store(self, save_mode, mode='w'):
