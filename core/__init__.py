@@ -4,4 +4,4 @@ from .mtcdocument import MTCDocumentMixing
 from .exceptions import ImproperlyConfigured
 from .mtckafkaconsumer import MTCKafkaConsumer
 from .mtcdeviceskafkaconsumer import MTCDevicesKafkaConsumer
-from .keypair import generateKeyPair
+#from .keypair import generateKeyPair
