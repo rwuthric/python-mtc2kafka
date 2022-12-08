@@ -1,9 +1,7 @@
 import xml.etree.ElementTree as ET
 import requests
 import os
-from kafka import KafkaConsumer
 from kafka import KafkaProducer
-from kafka import TopicPartition
 from kafka.errors import KafkaError
 from mtc2kafka.core import MTCDocumentMixing
 from mtc2kafka.core import MTCSerializersMixin
@@ -88,7 +86,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         instanceId, sequence = line.split(' ')
         f.close()
         return int(instanceId), int(sequence)
-        
+
     def store_agent_instance(self, mtc_header):
         """
         Stores agent instanceId and lastSequence to local file
