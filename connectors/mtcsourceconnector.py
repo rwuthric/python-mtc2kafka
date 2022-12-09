@@ -1,6 +1,9 @@
 import xml.etree.ElementTree as ET
 import requests
 import os
+from datetime import timezone
+from datetime import datetime
+from time import sleep
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from mtc2kafka.core import MTCDocumentMixing
@@ -18,9 +21,11 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
      bootstrap_servers = ['kafka_server1:9092']  # List of Kafka bootstrap servers
      mtc_agent = 'my_agent:5000'                 # MTConnect agent
 
-    Children can optionnaly redifine the following attributes:
+    Children can optionnaly redefine the following attributes:
 
-     mtconnect_devices_topic = 'mtc_devices'
+     mtconnect_devices_topic = 'mtc_devices'     # Kfka topic to which messages are written
+     max_attempts = 3                            # Maximal number of attemps in trying to reconnect to the MTConnect Agent
+     attempt_delay = 10                          # Time delay (in sec) bettween reconnection attempts
 
     """
 
@@ -28,6 +33,8 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
     mtc_agent = None
 
     mtconnect_devices_topic = 'mtc_devices'
+    max_attempts = 3
+    attempt_delay = 10
 
     # colors for print
     END = '\033[0m'
@@ -41,10 +48,51 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'bootstrap_servers' to be defined")
         if self.mtc_agent is None:
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'mtc_agent' to be defined")
+        self.agent_uuid = self.get_agent_uuid()
 
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """
         return "http://" + self.mtc_agent
+    
+    def get_agent_uuid(self):
+        """
+        Returns the MTConnect agent uuid
+        or -1 if connection could not be established or no agent found
+        """
+        try:
+            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
+        except requests.exceptions.ConnectionError:
+            print("ERROR - Could not connect to agent")
+            return '-1'
+        for device in self.get_agent_devices():
+            if device.attrib['name'] == 'Agent':
+                return device.attrib['uuid']
+        return '-1'
+    
+    def send_agent_availability(self, availability):
+        """
+        Sends Agent Availability message to Kafka
+        """
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+        
+        dt_now = datetime.now(timezone.utc)
+        item = {}
+        item['id'] = "agent_avail"
+        item['tag'] = "Availability"
+        item['attributes'] = {'timestamp': dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
+        item['value'] = availability
+        
+        future = producer.send(self.mtconnect_devices_topic,
+                               key=str.encode(self.agent_uuid),
+                               value=str.encode(str(item)))
+        try:
+            record_metadata = future.get(timeout=10)
+        except KafkaError:
+            # Decide what to do if request failed
+            log.exception()
+            pass
+        
+        producer.close()
  
     def get_agent_instanceId(self):
         """
@@ -100,18 +148,10 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             f.write("%s %s\n" % (instanceId, lastSequence))
             f.close()
 
-    def stream_mtc_dataItems_to_Kafka(self, interval=1000):
+    def __stream(self, producer, interval=1000):
         """
-        Streams MTConnect DataItems to Kafka
-        Keys are the MTConnect UUID of the device
-
-        Streams from the sequence of the agent that was last stored in Kafka
-        In case the agent was restarded since, will stream from the first sequence
+        Private method to stream MTConnect DataItems to Kafka
         """
-        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
-                                 key_serializer=self.mtc_dataItem_key_serializer,
-                                 value_serializer=self.mtc_dataItem_value_serializer)
-
         # Computes start_sequence to stream from
         instanceID, sequence = self.get_latest_stored_agent_instance()
         if self.get_agent_instanceId() == instanceID:
@@ -133,7 +173,6 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             if "uuid" not in device.attrib:
                 continue
             print(self.DEVICE, device.tag, device.attrib, self.END)
-            uuid = device.attrib['uuid']
 
         for line in req.iter_lines(delimiter=b"</MTConnectStreams>"):
             if line:
@@ -161,6 +200,47 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                             # Decide what to do if request failed
                             log.exception()
                             pass
-                self.store_agent_instance(self.get_mtc_header(root))
+                    self.store_agent_instance(self.get_mtc_header(root))
+
+    def stream_mtc_dataItems_to_Kafka(self, interval=1000):
+        """
+        Streams MTConnect DataItems to Kafka
+        Keys are the MTConnect UUID of the device
+
+        Streams from the sequence of the agent that was last stored in Kafka
+        In case the agent was restarted, will stream from the first sequence
+        """
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
+                                 key_serializer=self.mtc_dataItem_key_serializer,
+                                 value_serializer=self.mtc_dataItem_value_serializer)
+
+        stream = True
+        while (stream):
+            try:
+                self.__stream(producer, interval)
+                
+            except requests.exceptions.ChunkedEncodingError:
+                print("ERROR - MTConnect Agent got disconnected")
+                self.send_agent_availability('UNAVAILABLE')
+                attempts = 0
+                while attempts < self.max_attempts:
+                    print("  Trying again in %s sec" % self.attempt_delay)
+                    sleep(self.attempt_delay)
+                    try:
+                        requests.get(self.get_agent_baseUrl())
+                        print("Agent is back online")
+                        # Note: Agent sends itself an 'AVAILABLE' status
+                        # Do not call
+                        # self.send_agent_availability('AVAILABLE')
+                        attempts = self.max_attempts
+                    except requests.exceptions.ConnectionError:
+                        attempts += 1
+                        if attempts == self.max_attempts:
+                            print("Giving up")
+                            stream = False
+
+            except Exception as e:
+                print ("ERROR " , e.__class__.__name__)
+                stream = False
 
         producer.close()
