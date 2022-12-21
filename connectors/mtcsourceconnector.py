@@ -23,7 +23,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
 
     Children can optionnaly redefine the following attributes:
 
-     mtconnect_devices_topic = 'mtc_devices'     # Kfka topic to which messages are written
+     mtconnect_devices_topic = 'mtc_devices'     # Kafka topic to which messages are written
      max_attempts = 3                            # Maximal number of attemps in trying to reconnect to the MTConnect Agent
      attempt_delay = 10                          # Time delay (in sec) bettween reconnection attempts
 
@@ -53,14 +53,14 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """
         return "http://" + self.mtc_agent
-    
+
     def get_agent_uuid(self):
         """
         Returns the MTConnect agent uuid
         or -1 if connection could not be established or no agent found
         """
         try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
+            requests.get(self.get_agent_baseUrl() + '/probe').content
         except requests.exceptions.ConnectionError:
             print("ERROR - Could not connect to agent")
             return '-1'
@@ -68,20 +68,20 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             if device.attrib['name'] == 'Agent':
                 return device.attrib['uuid']
         return '-1'
-    
+
     def send_agent_availability(self, availability):
         """
         Sends Agent Availability message to Kafka
         """
         producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
-        
+
         dt_now = datetime.now(timezone.utc)
         item = {}
         item['id'] = "agent_avail"
         item['tag'] = "Availability"
         item['attributes'] = {'timestamp': dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
         item['value'] = availability
-        
+
         future = producer.send(self.mtconnect_devices_topic,
                                key=str.encode(self.agent_uuid),
                                value=str.encode(str(item)))
@@ -91,7 +91,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             # Decide what to do if request failed
             log.exception()
             pass
-        
+
         producer.close()
  
     def get_agent_instanceId(self):
@@ -218,7 +218,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         while (stream):
             try:
                 self.__stream(producer, interval)
-                
+
             except requests.exceptions.ChunkedEncodingError:
                 print("ERROR - MTConnect Agent got disconnected")
                 self.send_agent_availability('UNAVAILABLE')
@@ -240,7 +240,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
                             stream = False
 
             except Exception as e:
-                print ("ERROR " , e.__class__.__name__)
+                print("ERROR ", e.__class__.__name__)
                 stream = False
 
         producer.close()
