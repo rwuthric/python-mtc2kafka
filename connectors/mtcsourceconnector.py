@@ -6,12 +6,13 @@ from datetime import datetime
 from time import sleep
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
+from mtc2kafka.core import MTCAgent
 from mtc2kafka.core import MTCDocumentMixing
 from mtc2kafka.core import MTCSerializersMixin
 from mtc2kafka.core import ImproperlyConfigured
 
 
-class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
+class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
     """
     Kafka Source Connector to MTConnect
     Streams MTConnect data to Kafka topics
@@ -46,28 +47,7 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
         # Configuration validations
         if self.bootstrap_servers is None:
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'bootstrap_servers' to be defined")
-        if self.mtc_agent is None:
-            raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'mtc_agent' to be defined")
         self.agent_uuid = self.get_agent_uuid()
-
-    def get_agent_baseUrl(self):
-        """ returns MTConnect agent base URL """
-        return "http://" + self.mtc_agent
-
-    def get_agent_uuid(self):
-        """
-        Returns the MTConnect agent uuid
-        or -1 if connection could not be established or no agent found
-        """
-        try:
-            requests.get(self.get_agent_baseUrl() + '/probe').content
-        except requests.exceptions.ConnectionError:
-            print("ERROR - Could not connect to agent")
-            return '-1'
-        for device in self.get_agent_devices():
-            if device.attrib['name'] == 'Agent':
-                return device.attrib['uuid']
-        return '-1'
 
     def send_agent_availability(self, availability):
         """
@@ -93,29 +73,6 @@ class MTCSourceConnector(MTCSerializersMixin, MTCDocumentMixing):
             pass
 
         producer.close()
- 
-    def get_agent_instanceId(self):
-        """
-        Returns the current MTConnect agent instanceId
-        or -1 if connection could not be established
-        """
-        try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
-        except requests.exceptions.ConnectionError:
-            print("ERROR - Could not connect to agent")
-            return -1
-        root = ET.fromstring(xml_data)
-        return int(self.get_mtc_header(root).attrib['instanceId'])
-
-    def get_agent_devices(self):
-        """ Returns a list of devices handled by the MTConnect agent """
-        try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
-        except requests.exceptions.ConnectionError:
-            print("ERROR - Could not connect to agent")
-            return -1
-        root = ET.fromstring(xml_data)
-        return self.get_mtc_DeviceStreams(root)
 
     def get_agent_instance_file(self):
         """ Returns the local file used to store latest agent instance and sequence """

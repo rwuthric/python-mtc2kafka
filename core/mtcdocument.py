@@ -9,7 +9,7 @@ class MTCDocumentMixing():
 
     def __init__(self):
         """ constructor """
-        self.mtc_ns = {'mtc' : self.mtc_namespace}
+        self.mtc_ns = {'mtc': self.mtc_namespace}
 
     def sortChildrenBy(self, parent, attr):
         """ sorts children in parent by the attribute attr """
