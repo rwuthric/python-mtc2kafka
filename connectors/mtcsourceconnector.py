@@ -24,14 +24,16 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
     Children can optionnaly redefine the following attributes:
 
+     mtc_agent_uuid = none                       # UUID to be assigned to the agent (if none, does not reasing UUID)
      mtconnect_devices_topic = 'mtc_devices'     # Kafka topic to which messages are written
      max_attempts = 3                            # Maximal number of attemps in trying to reconnect to the MTConnect Agent
      attempt_delay = 10                          # Time delay (in sec) bettween reconnection attempts
 
     """
 
+    agent_uuid = None
     bootstrap_servers = None
-    mtc_agent = None
+    mtc_agent_uuid = None
 
     mtconnect_devices_topic = 'mtc_devices'
     max_attempts = 3
@@ -130,6 +132,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
             if "uuid" not in device.attrib:
                 continue
             print(self.DEVICE, device.tag, device.attrib, self.END)
+        original_agent_uuid = self.get_agent_uuid()
 
         for line in req.iter_lines(delimiter=b"</MTConnectStreams>"):
             if line:
@@ -142,6 +145,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                     if "uuid" not in device.attrib:
                         continue
                     uuid = device.attrib['uuid']
+                    if uuid == original_agent_uuid and self.agent_uuid:
+                        uuid = self.mtc_agent_uuid
                     for item in self.get_dataItems(device):
                         print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
                         header = [("agent", str.encode(self.mtc_agent)),
