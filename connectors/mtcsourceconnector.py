@@ -41,6 +41,9 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
     max_attempts = 3
     attempt_delay = 10
 
+    # Producer software version
+    kafka_producer_version = '1.1.0'
+
     # colors for print
     END = '\033[0m'
     DEVICE = '\033[34m'
@@ -93,6 +96,31 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item['tag'] = "Availability"
         item['attributes'] = {'timestamp': dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
         item['value'] = availability
+
+        future = producer.send(self.mtconnect_devices_topic,
+                               key=str.encode(self.kafka_producer_uuid),
+                               value=str.encode(str(item)))
+        try:
+            record_metadata = future.get(timeout=10)
+        except KafkaError:
+            # Decide what to do if request failed
+            log.exception()
+            pass
+
+        producer.close()
+
+    def send_producer_software_version(self):
+        """
+        Sends Kafka Producer Software Version Message to Kafka
+        """
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+
+        dt_now = datetime.now(timezone.utc)
+        item = {}
+        item['id'] = "producer_software_version"
+        item['tag'] = "ProducerSoftwareVersion"
+        item['attributes'] = {'timestamp': dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
+        item['value'] = self.kafka_producer_version
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=str.encode(self.kafka_producer_uuid),
@@ -207,6 +235,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                  value_serializer=self.mtc_dataItem_value_serializer)
 
         stream = True
+        self.send_producer_software_version()
         self.send_producer_availability('AVAILABLE')
         while (stream):
             try:
