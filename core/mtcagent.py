@@ -22,7 +22,6 @@ class MTCAgent(MTCDocumentMixing):
         # Configuration validations
         if self.mtc_agent is None:
             raise ImproperlyConfigured("MTCAgent requires the attribute 'mtc_agent' to be defined")
-        self.agent_uuid = self.get_agent_uuid()
 
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """

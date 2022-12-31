@@ -21,6 +21,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
      bootstrap_servers = ['kafka_server1:9092']  # List of Kafka bootstrap servers
      mtc_agent = 'my_agent:5000'                 # MTConnect agent
+     kafka_producer_uuid                         # Kafka producer UUID
 
     Children can optionnaly redefine the following attributes:
 
@@ -34,6 +35,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
     agent_uuid = None
     bootstrap_servers = None
     mtc_agent_uuid = None
+    kafka_producer_uuid = None
 
     mtconnect_devices_topic = 'mtc_devices'
     max_attempts = 3
@@ -49,7 +51,10 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         # Configuration validations
         if self.bootstrap_servers is None:
             raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'bootstrap_servers' to be defined")
-        self.agent_uuid = self.get_agent_uuid()
+        if self.kafka_producer_uuid is None:
+            raise ImproperlyConfigured("MTCSourceConnector requires the attribute 'kafka_producer_uuid' to be defined")
+        if self.mtc_agent_uuid is None:
+            self.mtc_agent_uuid = self.get_agent_uuid()
 
     def send_agent_availability(self, availability):
         """
@@ -65,7 +70,32 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item['value'] = availability
 
         future = producer.send(self.mtconnect_devices_topic,
-                               key=str.encode(self.agent_uuid),
+                               key=str.encode(self.mtc_agent_uuid),
+                               value=str.encode(str(item)))
+        try:
+            record_metadata = future.get(timeout=10)
+        except KafkaError:
+            # Decide what to do if request failed
+            log.exception()
+            pass
+
+        producer.close()
+
+    def send_producer_availability(self, availability):
+        """
+        Sends Kafka Producer Availability message to Kafka
+        """
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+
+        dt_now = datetime.now(timezone.utc)
+        item = {}
+        item['id'] = "avail"
+        item['tag'] = "Availability"
+        item['attributes'] = {'timestamp': dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
+        item['value'] = availability
+
+        future = producer.send(self.mtconnect_devices_topic,
+                               key=str.encode(self.kafka_producer_uuid),
                                value=str.encode(str(item)))
         try:
             record_metadata = future.get(timeout=10)
@@ -145,7 +175,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                     if "uuid" not in device.attrib:
                         continue
                     uuid = device.attrib['uuid']
-                    if uuid == original_agent_uuid and self.agent_uuid:
+                    if uuid == original_agent_uuid:
                         uuid = self.mtc_agent_uuid
                     for item in self.get_dataItems(device):
                         print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
@@ -177,6 +207,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                  value_serializer=self.mtc_dataItem_value_serializer)
 
         stream = True
+        self.send_producer_availability('AVAILABLE')
         while (stream):
             try:
                 self.__stream(producer, interval)
@@ -206,3 +237,4 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                 stream = False
 
         producer.close()
+        self.send_producer_availability('UNAVAILABLE')
