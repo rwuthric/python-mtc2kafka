@@ -165,7 +165,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
             f.write("%s %s\n" % (instanceId, lastSequence))
             f.close()
 
-    def __stream(self, producer, interval=1000):
+    def __stream(self, producer, verbose=True, interval=1000):
         """
         Private method to stream MTConnect DataItems to Kafka
         """
@@ -178,18 +178,21 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
             instanceID = self.get_agent_instanceId()
 
         agent_url = self.get_agent_baseUrl()
-        print("Streaming from " + agent_url + '&from=' + str(start_sequence))
-        print("to Kafka       " + str(self.bootstrap_servers))
-        print("Topic          " + self.mtconnect_devices_topic)
+        if verbose:
+            print("Streaming from " + agent_url + '&from=' + str(start_sequence))
+            print("to Kafka       " + str(self.bootstrap_servers))
+            print("Topic          " + self.mtconnect_devices_topic)
         req = requests.get(agent_url + '/sample?interval=' + str(interval) +
                            '&from=' + str(start_sequence), stream=True)
 
         # Determines devices handled by MTConnect agent
-        print("Devices handled by MTConnect agent:")
+        if verbose:
+            print("Devices handled by MTConnect agent:")
         for device in self.get_agent_devices():
             if "uuid" not in device.attrib:
                 continue
-            print(self.DEVICE, device.tag, device.attrib, self.END)
+            if verbose:
+                print(self.DEVICE, device.tag, device.attrib, self.END)
         original_agent_uuid = self.get_agent_uuid()
 
         for line in req.iter_lines(delimiter=b"</MTConnectStreams>"):
@@ -199,14 +202,16 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                 xml_data = resp[ind:] + "</MTConnectStreams>"
                 root = ET.fromstring(xml_data)
                 for device in self.get_mtc_DeviceStreams(root):
-                    print(self.DEVICE, device.tag, device.attrib, self.END)
+                    if verbose:
+                        print(self.DEVICE, device.tag, device.attrib, self.END)
                     if "uuid" not in device.attrib:
                         continue
                     uuid = device.attrib['uuid']
                     if uuid == original_agent_uuid:
                         uuid = self.mtc_agent_uuid
                     for item in self.get_dataItems(device):
-                        print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
+                        if verbose:
+                            print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
                         header = [("agent", str.encode(self.mtc_agent)),
                                   ("instanceID", str.encode(str(instanceID))),
                                   ("sequence", str.encode(item.attrib['sequence']))]
@@ -222,7 +227,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                             pass
                     self.store_agent_instance(self.get_mtc_header(root))
 
-    def stream_mtc_dataItems_to_Kafka(self, interval=1000):
+    def stream_mtc_dataItems_to_Kafka(self, verbose=True, interval=1000):
         """
         Streams MTConnect DataItems to Kafka
         Keys are the MTConnect UUID of the device
@@ -239,18 +244,21 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         self.send_producer_availability('AVAILABLE')
         while (stream):
             try:
-                self.__stream(producer, interval)
+                self.__stream(producer, verbose, interval)
 
             except requests.exceptions.ChunkedEncodingError:
-                print("ERROR - MTConnect Agent got disconnected")
+                if verbose:
+                    print("ERROR - MTConnect Agent got disconnected")
                 self.send_agent_availability('UNAVAILABLE')
                 attempts = 0
                 while attempts < self.max_attempts:
-                    print("  Trying again in %s sec" % self.attempt_delay)
+                    if verbose:
+                        print("  Trying again in %s sec" % self.attempt_delay)
                     sleep(self.attempt_delay)
                     try:
                         requests.get(self.get_agent_baseUrl())
-                        print("Agent is back online")
+                        if verbose:
+                            print("Agent is back online")
                         # Note: Agent sends itself an 'AVAILABLE' status
                         # Do not call
                         # self.send_agent_availability('AVAILABLE')
@@ -262,7 +270,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                             stream = False
 
             except Exception as e:
-                print("ERROR ", e.__class__.__name__)
+                if verbose:
+                    print("ERROR ", e.__class__.__name__)
                 stream = False
 
         producer.close()
