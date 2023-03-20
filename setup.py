@@ -1,6 +1,6 @@
 # mtc2kafka package build script
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='mtc2kafka',
@@ -10,6 +10,6 @@ setup(
     author='Rolf Wuthrich',
     author_email='rolf.wuthrich@concordia.ca',
     license='BSD 3-Clause License',
-    packages=['mtc2kafka'],
+    packages=find_packages(),
     install_requires=['requests', 'kafka-python'],
 )
