@@ -39,8 +39,20 @@ The MTConnect attributes can be accsed in python as a dictionnary. For example t
 message.value['attributes']['timestamp']
 ```
 
+## Installation
+Create a local clone of this repository and in the root directory of the cloned code run:
+```
+pip install .
+```
+
+## Uninstall
+Use
+```
+pip uninstall mtc2kafka
+```
+
 ## Dependencies
-The following Python libraries are required
+The following Python libraries are required (installation via `pip` handles them automatically)
 
 1. [kafka-python](https://kafka-python.readthedocs.io/en/master/)
 ```

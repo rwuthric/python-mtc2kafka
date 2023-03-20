@@ -29,4 +29,4 @@ RUN python3 -m pip install kafka-python
 RUN python3 -m pip install requests
 
 WORKDIR /opt/mtc2kafka
-COPY . .
+COPY mtc2kafka .
