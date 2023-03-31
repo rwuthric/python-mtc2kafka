@@ -1,4 +1,4 @@
-# mtc2kafka
+# python-mtc2kafka
 Python library to stream MTConnect data to Apache Kafka
 
 Each MTConnect DataItem is streamed to the single Kafka topic `'mtc_devices'`.
