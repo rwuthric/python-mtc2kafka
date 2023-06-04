@@ -10,7 +10,7 @@ def mtc_key_deserializer(key):
 
 
 def mtc_value_deserializer(value):
-    """ Kafka value serializer for MTConnect DataItems """
+    """ Kafka value deserializer for MTConnect DataItems """
     return ast.literal_eval(value.decode('utf-8'))
 
 
