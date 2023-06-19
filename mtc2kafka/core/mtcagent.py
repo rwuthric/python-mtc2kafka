@@ -10,7 +10,7 @@ class MTCAgent(MTCDocumentMixing):
 
     Children have to define the following attributes:
 
-     mtc_agent = 'my_agent:5000'                 # MTConnect agent
+     mtc_agent = 'my_agent:5000'                 # MTConnect agent address
 
     """
 
@@ -22,6 +22,22 @@ class MTCAgent(MTCDocumentMixing):
         # Configuration validations
         if self.mtc_agent is None:
             raise ImproperlyConfigured("MTCAgent requires the attribute 'mtc_agent' to be defined")
+            
+        # extracts XML devices namespace from /probe and /current request
+        try:
+            xml_probe = requests.get(self.get_agent_baseUrl() + '/probe').content
+            xml_current = requests.get(self.get_agent_baseUrl() + '/current').content
+        except requests.exceptions.ConnectionError:
+            print("ERROR - Could not connect to agent")
+            return '-1'
+        root = ET.fromstring(xml_probe)
+        start = root.tag.find('{') + 1
+        end = root.tag.find('}', start)
+        self.mtc_devices = {'mtc': root.tag[start:end]}
+        root = ET.fromstring(xml_current)
+        start = root.tag.find('{') + 1
+        end = root.tag.find('}', start)
+        self.mtc_streams = {'mtc': root.tag[start:end]}
 
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """
@@ -33,7 +49,7 @@ class MTCAgent(MTCDocumentMixing):
         or -1 if connection could not be established or no agent found
         """
         try:
-            requests.get(self.get_agent_baseUrl() + '/probe').content
+            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
         except requests.exceptions.ConnectionError:
             print("ERROR - Could not connect to agent")
             return '-1'
@@ -48,12 +64,12 @@ class MTCAgent(MTCDocumentMixing):
         or -1 if connection could not be established
         """
         try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
+            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
         except requests.exceptions.ConnectionError:
             print("ERROR - Could not connect to agent")
             return -1
         root = ET.fromstring(xml_data)
-        return int(self.get_mtc_header(root).attrib['instanceId'])
+        return int(self.get_mtc_header_devices(root).attrib['instanceId'])
 
     def get_agent_devices(self):
         """
@@ -61,12 +77,12 @@ class MTCAgent(MTCDocumentMixing):
         or -1 if connection could not be established
         """
         try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/current').content
+            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
         except requests.exceptions.ConnectionError:
             print("ERROR - Could not connect to agent")
             return -1
         root = ET.fromstring(xml_data)
-        return self.get_mtc_DeviceStreams(root)
+        return self.get_mtc_Devices(root)
 
     def get_agent_adapters(self):
         """
@@ -79,11 +95,8 @@ class MTCAgent(MTCDocumentMixing):
             print("ERROR - Could not connect to agent")
             return '-1'
         root = ET.fromstring(xml_data)
-        start = root.tag.find('{') + 1
-        end = root.tag.find('}', start)
-        mtc_ns = {'mtc': root.tag[start:end]}
-        agent = root.find("mtc:Devices", mtc_ns).find("mtc:Agent", mtc_ns)
-        return agent.find("mtc:Components", mtc_ns).find("mtc:Adapters", mtc_ns).find("mtc:Components", mtc_ns)
+        agent = root.find("mtc:Devices", self.mtc_devices).find("mtc:Agent", self.mtc_devices)
+        return agent.find("mtc:Components", self.mtc_devices).find("mtc:Adapters", self.mtc_devices ).find("mtc:Components", self.mtc_devices)
 
     def get_agent_adapters_id(self):
         """

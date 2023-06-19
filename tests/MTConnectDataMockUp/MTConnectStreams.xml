@@ -2,13 +2,14 @@
 <?xml-stylesheet type="text/xsl" href="/styles/styles.xsl"?>
 <MTConnectStreams xmlns:m="urn:mtconnect.org:MTConnectStreams:2.0" xmlns="urn:mtconnect.org:MTConnectStreams:2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:mtconnect.org:MTConnectStreams:2.0 /schemas/MTConnectStreams_2.0.xsd">
     <Header creationTime="2023-06-18T15:55:53Z" sender="50168b9130e2" instanceId="1685383424" version="2.0.0.12" deviceModelChangeTime="2023-05-29T18:03:44.033375Z" bufferSize="131072" nextSequence="87" firstSequence="1" lastSequence="5727"/>
-    <Streams><DeviceStream name="Agent" uuid="e8d21b67-fd02-51d1-93f4-848479bdde2c">
-        <ComponentStream component="Adapter" name="123.456.7.123:7879" componentId="_d8b297ff1b">
-            <Samples>
-                <ObservationUpdateRate dataItemId="_d8b297ff1b_observation_update_rate" duration="10" sequence="84" statistic="AVERAGE" timestamp="2023-06-07T19:17:19.441065Z">0.1</ObservationUpdateRate>
-                <ObservationUpdateRate dataItemId="_d8b297ff1b_observation_update_rate" duration="10" sequence="86" statistic="AVERAGE" timestamp="2023-06-07T19:17:29.441146Z">0.1</ObservationUpdateRate>
-            </Samples>
-        </ComponentStream>
+    <Streams>
+        <DeviceStream name="Agent" uuid="e8d21b67-fd02-51d1-93f4-848479bdde2c">
+            <ComponentStream component="Adapter" name="123.456.7.123:7879" componentId="_d8b297ff1b">
+                <Samples>
+                    <ObservationUpdateRate dataItemId="_d8b297ff1b_observation_update_rate" duration="10" sequence="84" statistic="AVERAGE" timestamp="2023-06-07T19:17:19.441065Z">0.1</ObservationUpdateRate>
+                    <ObservationUpdateRate dataItemId="_d8b297ff1b_observation_update_rate" duration="10" sequence="86" statistic="AVERAGE" timestamp="2023-06-07T19:17:29.441146Z">0.1</ObservationUpdateRate>
+                </Samples>
+            </ComponentStream>
         </DeviceStream>
         <DeviceStream name="Zaix-4" uuid="ZAIX-4-003">
             <ComponentStream component="Path" name="path" componentId="path">
