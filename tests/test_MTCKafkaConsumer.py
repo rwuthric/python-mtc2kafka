@@ -6,7 +6,7 @@ from mtc2kafka.core import MTCKafkaConsumer
 
 class TestMTCKafkaConsumer(TestCase):
     """
-    Tests for MTCKafkaConsumer:
+    Tests for MTCKafkaConsumer
     """
            
     @patch("kafka.KafkaConsumer.__init__", return_value=None)
