@@ -201,7 +201,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                 ind = resp.find("<?xml")
                 xml_data = resp[ind:] + "</MTConnectStreams>"
                 root = ET.fromstring(xml_data)
-                for device in self.get_mtc_DeviceStreams(root):
+                for device in self.get_mtc_DevicesStreams(root):
                     if verbose:
                         print(self.DEVICE, device.tag, device.attrib, self.END)
                     if "uuid" not in device.attrib:
@@ -225,7 +225,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                             # Decide what to do if request failed
                             log.exception()
                             pass
-                    self.store_agent_instance(self.get_mtc_header(root))
+                    self.store_agent_instance(self.get_mtc_header_streams(root))
 
     def stream_mtc_dataItems_to_Kafka(self, verbose=True, interval=1000):
         """
