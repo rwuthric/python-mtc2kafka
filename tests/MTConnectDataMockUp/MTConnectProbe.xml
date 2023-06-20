@@ -1,0 +1,86 @@
+<MTConnectDevices xmlns:m="urn:mtconnect.org:MTConnectDevices:2.0" xmlns="urn:mtconnect.org:MTConnectDevices:2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:mtconnect.org:MTConnectDevices:2.0 /schemas/MTConnectDevices_2.0.xsd">
+  <Header creationTime="2023-06-19T00:30:30Z" sender="50168b9130e2" instanceId="1685383424" version="2.0.0.12" deviceModelChangeTime="2023-05-29T18:03:44.033375Z" assetBufferSize="1024" assetCount="0" bufferSize="131072" />
+  <Devices>
+    <Agent id="agent_e8d21b67" mtconnectVersion="2.0" name="Agent" uuid="e8d21b67-fd02-51d1-93f4-848479bdde2c">
+      <DataItems>
+        <DataItem category="EVENT" id="agent_avail" type="AVAILABILITY" />
+        <DataItem category="EVENT" id="device_added" type="DEVICE_ADDED" />
+        <DataItem category="EVENT" id="device_removed" type="DEVICE_REMOVED" />
+        <DataItem category="EVENT" id="device_changed" type="DEVICE_CHANGED" />
+        <DataItem category="EVENT" discrete="true" id="agent_e8d21b67_asset_chg" type="ASSET_CHANGED" />
+        <DataItem category="EVENT" id="agent_e8d21b67_asset_rem" type="ASSET_REMOVED" />
+        <DataItem category="EVENT" id="agent_e8d21b67_asset_count" representation="DATA_SET" type="ASSET_COUNT" />
+      </DataItems>
+      <Components>
+        <Adapters id="__adapters__">
+          <Components>
+            <Adapter id="_d8b297ff1b" name="123.345.6.789:7879">
+              <DataItems>
+                <DataItem category="EVENT" id="_d8b297ff1b_connection_status" type="CONNECTION_STATUS" />
+                <DataItem category="EVENT" id="_d8b297ff1b_adapter_uri" type="ADAPTER_URI">
+                  <Constraints>
+                    <Value>_123.345.6.789_7879</Value>
+                  </Constraints>
+                </DataItem>
+                <DataItem category="SAMPLE" id="_d8b297ff1b_observation_update_rate" statistic="AVERAGE" type="OBSERVATION_UPDATE_RATE" units="COUNT/SECOND" />
+                <DataItem category="SAMPLE" id="_d8b297ff1b_asset_update_rate" statistic="AVERAGE" type="ASSET_UPDATE_RATE" units="COUNT/SECOND" />
+                <DataItem category="EVENT" id="_d8b297ff1b_adapter_software_version" type="ADAPTER_SOFTWARE_VERSION" />
+                <DataItem category="EVENT" id="_d8b297ff1b_mtconnect_version" type="MTCONNECT_VERSION" />
+              </DataItems>
+            </Adapter>
+          </Components>
+        </Adapters>
+      </Components>
+    </Agent>
+    <Device id="device" name="Zaix-4" uuid="ZAIX-4-003">
+      <Description manufacturer="ANNOY TOOLS" />
+      <DataItems>
+        <DataItem category="EVENT" id="avail" type="AVAILABILITY" />
+        <DataItem category="EVENT" id="operator" subType="OPERATOR" type="USER" />
+        <DataItem category="EVENT" id="exp_start" type="MESSAGE" />
+        <DataItem category="EVENT" id="exp_end" type="MESSAGE" />
+        <DataItem category="EVENT" discrete="true" id="device_asset_chg" type="ASSET_CHANGED" />
+        <DataItem category="EVENT" id="device_asset_rem" type="ASSET_REMOVED" />
+        <DataItem category="EVENT" id="device_asset_count" representation="DATA_SET" type="ASSET_COUNT" />
+      </DataItems>
+      <Components>
+        <Axes id="axes" name="Axes">
+          <Components>
+            <Rotary id="c-axis" name="C">
+              <DataItems>
+                <DataItem category="SAMPLE" id="Sspeed" name="Sspeed" nativeUnits="REVOLUTION/MINUTE" subType="PROGRAMMED" type="ROTARY_VELOCITY" units="REVOLUTION/MINUTE" />
+              </DataItems>
+            </Rotary>
+            <Linear id="z-axis" name="Z">
+              <DataItems>
+                <DataItem category="SAMPLE" id="Zact" name="Zact" nativeUnits="MILLIMETER" subType="ACTUAL" type="POSITION" units="MILLIMETER" />
+              </DataItems>
+            </Linear>
+          </Components>
+        </Axes>
+        <Controller id="ctrl" name="controller">
+          <DataItems>
+            <DataItem category="EVENT" id="firmeware" subType="VERSION" type="APPLICATION" />
+            <DataItem category="EVENT" id="msg" type="MESSAGE" />
+            <DataItem category="EVENT" id="estop" type="EMERGENCY_STOP" />
+            <DataItem category="CONDITION" id="grbl" type="LOGIC_PROGRAM" />
+            <DataItem category="CONDITION" id="motion" type="MOTION_PROGRAM" />
+          </DataItems>
+          <Components>
+            <Path id="path" name="path">
+              <DataItems>
+                <DataItem category="EVENT" id="block" name="block" type="BLOCK" />
+                <DataItem category="EVENT" id="mode" name="mode" type="CONTROLLER_MODE" />
+                <DataItem category="EVENT" id="line" name="line" subType="ABSOLUTE" type="LINE_NUMBER" />
+                <DataItem category="EVENT" id="prog" name="program" type="PROGRAM" />
+                <DataItem category="EVENT" id="exec" name="execution" type="EXECUTION" />
+                <DataItem category="EVENT" id="tool" name="tool_id" type="TOOL_ID" />
+                <DataItem category="SAMPLE" id="Frt" nativeUnits="MILLIMETER/MINUTE" subType="ACTUAL" type="PATH_FEEDRATE" units="MILLIMETER/SECOND" />
+              </DataItems>
+            </Path>
+          </Components>
+        </Controller>
+      </Components>
+    </Device>
+  </Devices>
+</MTConnectDevices>
