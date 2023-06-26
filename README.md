@@ -62,3 +62,6 @@ python -m pip install kafka-python
 ```
 python -m pip install requests
 ```
+
+## Unit tests
+The test suite is described [here](https://github.com/rwuthric/python-mtc2kafka/tree/main/tests)
