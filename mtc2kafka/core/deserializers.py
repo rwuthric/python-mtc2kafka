@@ -1,4 +1,4 @@
-import ast
+import json
 
 """
 Kafka deserializers for MTConnect DataItems
@@ -11,7 +11,7 @@ def mtc_key_deserializer(key):
 
 def mtc_value_deserializer(value):
     """ Kafka value deserializer for MTConnect DataItems """
-    return ast.literal_eval(value.decode('utf-8'))
+    return json.loads(value.decode('utf-8'))
 
 
 """
