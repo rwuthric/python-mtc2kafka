@@ -2,6 +2,9 @@
 Kafka MTConnect DataItems serializers
 """
 
+import json
+
+
 def mtc_dataItem_key_serializer(key):
     """  Kafka key serializer for MTConnect DataItems """
     return str.encode(key)
@@ -17,7 +20,7 @@ def mtc_dataItem_value_serializer(dataItem):
     ret_dic['tag'] = dataItem.tag
     ret_dic['attributes'] = tmp_dic
     ret_dic['value'] = dataItem.text
-    return str.encode(str(ret_dic))
+    return str.encode(json.dumps(ret_dic))
 
 
 """
