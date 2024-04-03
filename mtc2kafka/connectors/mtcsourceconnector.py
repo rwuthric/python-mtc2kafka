@@ -18,6 +18,10 @@ class DataItem():
     """
     attrib = {}
 
+    def __init__(self):
+        self.attrib['dataItemId'] = ''
+        self.attrib['sequence'] = ''
+
 
 class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
     """
