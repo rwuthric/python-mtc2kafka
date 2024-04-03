@@ -19,6 +19,8 @@ class DataItem():
     attrib = {}
 
     def __init__(self):
+        self.tag = ''
+        self.text = ''
         self.attrib['dataItemId'] = ''
         self.attrib['sequence'] = ''
 
@@ -80,10 +82,10 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
         dt_now = datetime.now(timezone.utc)
         item = DataItem()
-        item.attrib['id'] = "agent_avail"
-        item.attrib['tag'] = "Availability"
-        item.attrib['attributes'] = {"timestamp": dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
-        item.attrib['value'] = availability
+        item.tag = "Availability"
+        item.attrib['dataItemId'] = "agent_avail"
+        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        item.text = availability
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.mtc_agent_uuid,
@@ -107,10 +109,10 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
         dt_now = datetime.now(timezone.utc)
         item = DataItem()
-        item.attrib['id'] = "avail"
-        item.attrib['tag'] = "Availability"
-        item.attrib['attributes'] = {"timestamp": dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
-        item.attrib['value'] = availability
+        item.tag = "Availability"
+        item.attrib['dataItemId'] = "avail"
+        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        item.text = availability
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
@@ -134,10 +136,10 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
         dt_now = datetime.now(timezone.utc)
         item = DataItem()
-        item.attrib['id'] = "producer_software_version"
-        item.attrib['tag'] = "ProducerSoftwareVersion"
-        item.attrib['attributes'] = {"timestamp": dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}
-        item.attrib['value'] = self.kafka_producer_version
+        item.tag = "ProducerSoftwareVersion"
+        item.attrib['dataItemId'] = "producer_software_version"
+        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        item.text = self.kafka_producer_version
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
