@@ -63,7 +63,9 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         """
         Sends Agent Availability message to Kafka
         """
-        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
+                                 key_serializer=self.mtc_dataItem_key_serializer,
+                                 value_serializer=self.mtc_dataItem_value_serializer)
 
         dt_now = datetime.now(timezone.utc)
         item = {}
@@ -73,8 +75,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item['value'] = availability
 
         future = producer.send(self.mtconnect_devices_topic,
-                               key=str.encode(self.mtc_agent_uuid),
-                               value=str.encode(str(item)))
+                               key=self.mtc_agent_uuid,
+                               value=item)
         try:
             record_metadata = future.get(timeout=10)
         except KafkaError:
@@ -88,7 +90,9 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         """
         Sends Kafka Producer Availability message to Kafka
         """
-        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
+                                 key_serializer=self.mtc_dataItem_key_serializer,
+                                 value_serializer=self.mtc_dataItem_value_serializer)
 
         dt_now = datetime.now(timezone.utc)
         item = {}
@@ -98,8 +102,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item['value'] = availability
 
         future = producer.send(self.mtconnect_devices_topic,
-                               key=str.encode(self.kafka_producer_uuid),
-                               value=str.encode(str(item)))
+                               key=self.kafka_producer_uuid,
+                               value=item)
         try:
             record_metadata = future.get(timeout=10)
         except KafkaError:
@@ -113,7 +117,9 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         """
         Sends Kafka Producer Software Version Message to Kafka
         """
-        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers)
+        producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers,
+                                 key_serializer=self.mtc_dataItem_key_serializer,
+                                 value_serializer=self.mtc_dataItem_value_serializer)
 
         dt_now = datetime.now(timezone.utc)
         item = {}
@@ -123,8 +129,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item['value'] = self.kafka_producer_version
 
         future = producer.send(self.mtconnect_devices_topic,
-                               key=str.encode(self.kafka_producer_uuid),
-                               value=str.encode(str(item)))
+                               key=self.kafka_producer_uuid,
+                               value=item)
         try:
             record_metadata = future.get(timeout=10)
         except KafkaError:
