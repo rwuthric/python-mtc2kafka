@@ -4,6 +4,7 @@ import json
 Kafka deserializers for MTConnect DataItems
 """
 
+
 def mtc_key_deserializer(key):
     """ Kafka key deserializer for MTConnect DataItems """
     return key.decode('utf-8')
@@ -17,6 +18,7 @@ def mtc_value_deserializer(value):
 """
 Mixin for Kafka deserializers of MTConnect DataItems
 """
+
 
 class MTCDeserializersMixin():
 

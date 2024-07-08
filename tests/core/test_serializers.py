@@ -11,12 +11,12 @@ class TestMTC2KafkaSerializers(TestCase):
      - mtc_dataItem_key_serializer
      - mtc_dataItem_value_serializer
     """
-    
+
     def test_mtc_dataItem_key_serializer(self):
         actual = mtc_dataItem_key_serializer("test_uuid")
         expected = b'test_uuid'
         self.assertEqual(actual, expected)
-        
+
     def test_mtc_dataItem_value_serializer(self):
         dataItem = ET.fromstring('<Position dataItemId="Zact" name="Zact" sequence="18059" subType="ACTUAL" timestamp="2022-11-06T21:40:21.587353Z">-0.328</Position>')
         actual = mtc_dataItem_value_serializer(dataItem)

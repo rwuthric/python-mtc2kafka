@@ -19,10 +19,16 @@ class DataItem():
     attrib = {}
 
     def __init__(self):
+        self.set_timestamp()
         self.tag = ''
         self.text = ''
         self.attrib['dataItemId'] = ''
         self.attrib['sequence'] = ''
+
+    def set_timestamp(self):
+        """ sets time stamp to now """
+        dt_now = datetime.now(timezone.utc)
+        self.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
@@ -80,21 +86,18 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                  key_serializer=self.mtc_dataItem_key_serializer,
                                  value_serializer=self.mtc_dataItem_value_serializer)
 
-        dt_now = datetime.now(timezone.utc)
         item = DataItem()
         item.tag = "Availability"
         item.attrib['dataItemId'] = "agent_avail"
-        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         item.text = availability
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.mtc_agent_uuid,
                                value=item)
         try:
-            record_metadata = future.get(timeout=10)
+            future.get(timeout=10)
         except KafkaError:
             # Decide what to do if request failed
-            log.exception()
             pass
 
         producer.close()
@@ -107,21 +110,18 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                  key_serializer=self.mtc_dataItem_key_serializer,
                                  value_serializer=self.mtc_dataItem_value_serializer)
 
-        dt_now = datetime.now(timezone.utc)
         item = DataItem()
         item.tag = "Availability"
         item.attrib['dataItemId'] = "avail"
-        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         item.text = availability
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
                                value=item)
         try:
-            record_metadata = future.get(timeout=10)
+            future.get(timeout=10)
         except KafkaError:
             # Decide what to do if request failed
-            log.exception()
             pass
 
         producer.close()
@@ -134,21 +134,18 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                  key_serializer=self.mtc_dataItem_key_serializer,
                                  value_serializer=self.mtc_dataItem_value_serializer)
 
-        dt_now = datetime.now(timezone.utc)
         item = DataItem()
         item.tag = "ProducerSoftwareVersion"
         item.attrib['dataItemId'] = "producer_software_version"
-        item.attrib['timestamp'] = dt_now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         item.text = self.kafka_producer_version
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
                                value=item)
         try:
-            record_metadata = future.get(timeout=10)
+            future.get(timeout=10)
         except KafkaError:
             # Decide what to do if request failed
-            log.exception()
             pass
 
         producer.close()
@@ -239,10 +236,9 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                                                key=uuid,
                                                value=item)
                         try:
-                            record_metadata = future.get(timeout=10)
+                            future.get(timeout=10)
                         except KafkaError:
                             # Decide what to do if request failed
-                            log.exception()
                             pass
                     self.store_agent_instance(self.get_mtc_header_streams(root))
 

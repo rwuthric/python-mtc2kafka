@@ -22,7 +22,7 @@ class MTCAgent(MTCDocumentMixing):
         # Configuration validations
         if self.mtc_agent is None:
             raise ImproperlyConfigured("MTCAgent requires the attribute 'mtc_agent' to be defined")
-            
+
         # extracts XML devices namespace from /probe and /current request
         try:
             xml_probe = requests.get(self.get_agent_baseUrl() + '/probe').content
@@ -49,7 +49,7 @@ class MTCAgent(MTCDocumentMixing):
         or -1 if connection could not be established or no agent found
         """
         try:
-            xml_data = requests.get(self.get_agent_baseUrl() + '/probe').content
+            requests.get(self.get_agent_baseUrl() + '/probe').content
         except requests.exceptions.ConnectionError:
             print("ERROR - Could not connect to agent")
             return '-1'
@@ -96,7 +96,7 @@ class MTCAgent(MTCDocumentMixing):
             return '-1'
         root = ET.fromstring(xml_data)
         agent = root.find("mtc:Devices", self.mtc_devices).find("mtc:Agent", self.mtc_devices)
-        return agent.find("mtc:Components", self.mtc_devices).find("mtc:Adapters", self.mtc_devices ).find("mtc:Components", self.mtc_devices)
+        return agent.find("mtc:Components", self.mtc_devices).find("mtc:Adapters", self.mtc_devices).find("mtc:Components", self.mtc_devices)
 
     def get_agent_adapters_id(self):
         """

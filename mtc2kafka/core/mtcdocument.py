@@ -20,7 +20,7 @@ class MTCDocumentMixing():
     def get_mtc_header_devices(self, xml_root):
         """ returns MTConnect header from a MTConnect device file """
         return xml_root.find("mtc:Header", self.mtc_devices)
-    
+
     def get_mtc_header_streams(self, xml_root):
         """ returns MTConnect header from a MTConnect stream """
         return xml_root.find("mtc:Header", self.mtc_streams)
@@ -28,7 +28,7 @@ class MTCDocumentMixing():
     def get_mtc_DevicesStreams(self, xml_root):
         """ returns all MTConnect Devices from an MTConnect Streams document """
         return xml_root.find("mtc:Streams", self.mtc_streams)
-    
+
     def get_mtc_Devices(self, xml_root):
         """ returns all MTConnect Devices from an MTConnect Device document """
         return xml_root.find("mtc:Devices", self.mtc_devices)

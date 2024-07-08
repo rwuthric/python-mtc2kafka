@@ -27,6 +27,7 @@ def mtc_dataItem_value_serializer(dataItem):
 Mixin for Kafka MTConnect DataItems serializers
 """
 
+
 class MTCSerializersMixin():
     """ A mixin for Kafka MTConnect DataItems serializers """
 

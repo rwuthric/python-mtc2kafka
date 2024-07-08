@@ -5,7 +5,7 @@ import mtc2kafka
 
 setup(
     name='mtc2kafka',
-    version=mtc2kafka.__version__,    
+    version=mtc2kafka.__version__,
     description='Python library to stream MTConnect data to Apache Kafka',
     url='https://github.com/rwuthric/mtc2kafka',
     author=mtc2kafka.__author__,

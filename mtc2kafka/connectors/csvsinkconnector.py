@@ -1,7 +1,7 @@
 from pathlib import Path
 import os.path
 import ast
-from kafka import KafkaConsumer, TopicPartition
+from kafka import KafkaConsumer
 from mtc2kafka.core import MTCDeserializersMixin, ImproperlyConfigured
 
 
@@ -19,7 +19,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
      meta_data = ['id3', 'id4']                   # List of ids of MTConnect DataItems that will be saved as meta data
      storageFolder = '/path/to/storage/folder'    # Full path where the data will be saved to
      start_id = 'start'                           # ID that will trigger start of saving
-                                                  # Its value is used to create a sub-folder 
+                                                  # Its value is used to create a sub-folder
                                                   # within 'storageFolder'
      stop_id = 'stop'                             # ID that will trigger stop of saving
 
@@ -116,7 +116,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
         f.close()
 
     def get_storage_folder(self):
-        """ 
+        """
         Returns folder where data will be stored and creates it if needed
         The recieved value of the 'start_id' is used to create
         a sub-folder within 'storageFolder'
@@ -191,7 +191,7 @@ class CSVSinkConnector(MTCDeserializersMixin):
             if message.value['id'] in self.meta_data or message.value['id'] in self.ids:
                 self.previous = self.current.copy()
                 self.current[message.value['id']] = message.value['value']
-                #self.current['kafka_offset'] = message.offset
+                # self.current['kafka_offset'] = message.offset
                 self.current['timestamp'] = message.value['attributes']['timestamp']
                 self.save_current()
 
