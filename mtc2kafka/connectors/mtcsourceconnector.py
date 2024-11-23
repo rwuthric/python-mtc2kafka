@@ -22,6 +22,7 @@ class DataItem():
         self.set_timestamp()
         self.tag = ''
         self.text = ''
+        self.type = ''
         self.attrib['dataItemId'] = ''
         self.attrib['sequence'] = ''
 
@@ -90,6 +91,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item.tag = "Availability"
         item.attrib['dataItemId'] = "agent_avail"
         item.text = availability
+        item.type = 'Events'
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.mtc_agent_uuid,
@@ -114,6 +116,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item.tag = "Availability"
         item.attrib['dataItemId'] = "avail"
         item.text = availability
+        item.type = 'Events'
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
@@ -138,6 +141,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item.tag = "ProducerSoftwareVersion"
         item.attrib['dataItemId'] = "producer_software_version"
         item.text = self.kafka_producer_version
+        item.type = 'Events'
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
