@@ -1,3 +1,22 @@
+def enrich_with_type(element, parent_type=None):
+    """ enrich element with type attribute """
+
+    # Extract the local name of the tag (ignoring namespace)
+    tag_name = element.tag.split('}')[-1] if '}' in element.tag else element.tag
+
+    # If the tag is "Events" or "Samples", set the type for children
+    if tag_name in ["Events", "Samples"]:
+        parent_type = tag_name
+
+    # If this element has a 'sequence' attribute, enrich it with the current type
+    if "sequence" in element.attrib:
+        element.set("type", parent_type)
+
+    # Recur for each child element
+    for child in element:
+        enrich_with_type(child, parent_type)
+
+
 class MTCDocumentMixing():
     """
     A mixin for reading MTConnect documents
@@ -27,6 +46,7 @@ class MTCDocumentMixing():
 
     def get_mtc_DevicesStreams(self, xml_root):
         """ returns all MTConnect Devices from an MTConnect Streams document """
+        enrich_with_type(xml_root.getroot())
         return xml_root.find("mtc:Streams", self.mtc_streams)
 
     def get_mtc_Devices(self, xml_root):

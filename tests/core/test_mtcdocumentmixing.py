@@ -66,8 +66,8 @@ class TestMTCDocumentMixing(TestCase):
         device = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream)[1]
         item = self.testMTCDoc.get_dataItems(device)
         self.assertEqual(item[0].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Block')
-        self.assertEqual(item[0].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '83', 'timestamp': '2023-06-07T19:17:15.169357Z'})
+        self.assertEqual(item[0].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '83', 'timestamp': '2023-06-07T19:17:15.169357Z', 'type': 'Events'})
         self.assertEqual(item[0].text, 'Z-5 F100')
         self.assertEqual(item[1].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Block')
-        self.assertEqual(item[1].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '85', 'timestamp': '2023-06-07T19:17:29.426247Z'})
+        self.assertEqual(item[1].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '85', 'timestamp': '2023-06-07T19:17:29.426247Z', 'type': 'Events'})
         self.assertEqual(item[1].text, 'Z-1 F100')

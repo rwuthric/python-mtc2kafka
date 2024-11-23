@@ -18,7 +18,7 @@ class TestMTC2KafkaSerializers(TestCase):
         self.assertEqual(actual, expected)
 
     def test_mtc_dataItem_value_serializer(self):
-        dataItem = ET.fromstring('<Position dataItemId="Zact" name="Zact" sequence="18059" subType="ACTUAL" timestamp="2022-11-06T21:40:21.587353Z">-0.328</Position>')
+        dataItem = ET.fromstring('<Position dataItemId="Zact" name="Zact" sequence="18059" subType="ACTUAL" timestamp="2022-11-06T21:40:21.587353Z" type="Samples">-0.328</Position>')
         actual = mtc_dataItem_value_serializer(dataItem)
-        expected = b'{"id": "Zact", "tag": "Position", "attributes": {"name": "Zact", "subType": "ACTUAL", "timestamp": "2022-11-06T21:40:21.587353Z"}, "value": "-0.328"}'
+        expected = b'{"id": "Zact", "tag": "Position", "attributes": {"name": "Zact", "subType": "ACTUAL", "timestamp": "2022-11-06T21:40:21.587353Z"}, "value": "-0.328", "type": "Samples"}'
         self.assertEqual(actual, expected)

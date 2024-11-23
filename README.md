@@ -14,6 +14,7 @@ Each message key is the MTConnect `UUID` of the device.
   * `'tag'` : the xml tag of the MTConnect DataItem
   * `'attributes'` : the attributes of the MTConnect DataItem in JSON format
   * `'value'` : the MTConnect value of the MTConnect DataItem
+  * `'type'` : the MTConnect DataItem category (either `Samples` or `Events`)
   
 mtc2kafka converts all JSON formats to python dictionnaries to simplify their manipulation.
 
@@ -35,6 +36,7 @@ then the following kafka message fields will be available:
 * `message.value['tag']` equal to `Position`
 * `message.value['attributes']` equal to ```{'name': 'Zact', 'subType': 'ACTUAL', 'timestamp': '2022-11-06T21:40:21.587353Z'}```
 * `message.value['value']` equal to `-0.328`
+* `message.value['type']` equal to `Samples`
 
 The MTConnect attributes can be accsed in python as a dictionnary. For example the `'timestamp'` attribute would be accessible like so:
 ```
