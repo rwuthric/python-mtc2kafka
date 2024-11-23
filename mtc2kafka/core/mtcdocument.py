@@ -46,7 +46,7 @@ class MTCDocumentMixing():
 
     def get_mtc_DevicesStreams(self, xml_root):
         """ returns all MTConnect Devices from an MTConnect Streams document """
-        enrich_with_type(xml_root.getroot())
+        enrich_with_type(xml_root)
         return xml_root.find("mtc:Streams", self.mtc_streams)
 
     def get_mtc_Devices(self, xml_root):

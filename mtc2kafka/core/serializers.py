@@ -15,13 +15,13 @@ def mtc_dataItem_value_serializer(dataItem):
     tmp_dic = dataItem.attrib.copy()
     del tmp_dic['dataItemId']
     del tmp_dic['sequence']
-    del tmp_dic['type']
     ret_dic = {}
     ret_dic['id'] = dataItem.attrib['dataItemId']
     ret_dic['tag'] = dataItem.tag
+    ret_dic['type'] = tmp_dic['type']
+    del tmp_dic['type']
     ret_dic['attributes'] = tmp_dic
     ret_dic['value'] = dataItem.text
-    ret_dic['type'] = dataItem.get('type')
     return str.encode(json.dumps(ret_dic))
 
 

@@ -47,7 +47,7 @@ class TestMTCDocumentMixing(TestCase):
 
     def test_MTCDocumentMixing_get_mtc_DevicesStreams(self):
         """ Tests if MTConnect Devices are found in MTConnect stream """
-        devices = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream)
+        devices = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream.getroot())
         self.assertEqual(devices[0].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}DeviceStream')
         self.assertEqual(devices[0].attrib, {'name': 'Agent', 'uuid': 'e8d21b67-fd02-51d1-93f4-848479bdde2c'})
         self.assertEqual(devices[1].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}DeviceStream')
@@ -63,7 +63,7 @@ class TestMTCDocumentMixing(TestCase):
 
     def test_MTCDocumentMixing_get_dataItems(self):
         """ Tests if MTConnect dataItems are found in an MTC Connect stream """
-        device = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream)[1]
+        device = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream.getroot())[1]
         item = self.testMTCDoc.get_dataItems(device)
         self.assertEqual(item[0].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Block')
         self.assertEqual(item[0].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '83', 'timestamp': '2023-06-07T19:17:15.169357Z', 'type': 'Events'})

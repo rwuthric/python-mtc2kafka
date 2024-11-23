@@ -140,8 +140,8 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
         item = DataItem()
         item.tag = "ProducerSoftwareVersion"
         item.attrib['dataItemId'] = "producer_software_version"
+        item.attrib['type'] = "Events"
         item.text = self.kafka_producer_version
-        item.type = 'Events'
 
         future = producer.send(self.mtconnect_devices_topic,
                                key=self.kafka_producer_uuid,
@@ -290,7 +290,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
             except Exception as e:
                 if verbose:
-                    print("ERROR ", e.__class__.__name__)
+                    print("Unexpected ERROR ", e, e.__class__.__name__)
                 stream = False
 
         producer.close()

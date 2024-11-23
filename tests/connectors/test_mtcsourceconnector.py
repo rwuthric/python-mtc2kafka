@@ -156,7 +156,7 @@ class TestMTCSourceConnector(unittest.TestCase):
         self.assertEqual(mock_data_item_instance.tag, "ProducerSoftwareVersion")
         self.assertEqual(mock_data_item_instance.attrib['dataItemId'], "producer_software_version")
         self.assertEqual(mock_data_item_instance.text, connector.kafka_producer_version)
-        self.assertEqual(mock_data_item_instance.type, "Events")
+        self.assertEqual(mock_data_item_instance.attrib['type'], "Events")
 
         # Check if correct Kafka producer used
         MockKafkaProducer.assert_called_once_with(
