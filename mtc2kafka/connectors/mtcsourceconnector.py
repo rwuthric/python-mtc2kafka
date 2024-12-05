@@ -232,10 +232,23 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                     for item in self.get_dataItems(device):
                         if verbose:
                             print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
+
+                        # compute Kafka message time stamp
+                        timestamp = item.attrib['timestamp'].rstrip('Z')
+                        if '.' in timestamp:
+                            date_part, fraction = timestamp.split('.')
+                            fraction = fraction.ljust(6, '0')[:6]  # Pad or truncate to 6 digits
+                            normalized_timestamp = f"{date_part}.{fraction}"
+                        else:
+                            normalized_timestamp = timestamp  # No fractional seconds present
+                        dt = datetime.fromisoformat(normalized_timestamp).replace(tzinfo=None)
+                        timestamp_ms = int(dt.timestamp() * 1000)
+
                         header = [("agent", str.encode(self.mtc_agent)),
                                   ("instanceID", str.encode(str(instanceID))),
                                   ("sequence", str.encode(item.attrib['sequence']))]
                         future = producer.send(self.mtconnect_devices_topic,
+                                               timestamp_ms=timestamp_ms,
                                                headers=header,
                                                key=uuid,
                                                value=item)
