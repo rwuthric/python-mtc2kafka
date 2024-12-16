@@ -13,10 +13,18 @@
         </DeviceStream>
         <DeviceStream name="Zaix-4" uuid="ZAIX-4-003">
             <ComponentStream component="Path" name="path" componentId="path">
+                <Samples>
+                    <PathFeedrate dataItemId="Frt" sequence="94" subType="ACTUAL" timestamp="2024-12-16T01:02:53.577986Z">0</PathFeedrate>
+                </Samples>
                 <Events>
                     <Block dataItemId="block" name="block" sequence="83" timestamp="2023-06-07T19:17:15.169357Z">Z-5 F100</Block>
                     <Block dataItemId="block" name="block" sequence="85" timestamp="2023-06-07T19:17:29.426247Z">Z-1 F100</Block>
                 </Events>
+            </ComponentStream>
+            <ComponentStream component="Controller" name="controller" componentId="ctrl">
+                <Condition>
+                    <Normal dataItemId="grbl" nativeCode="Connected" sequence="99" timestamp="2024-12-16T01:02:53.578071Z" type="LOGIC_PROGRAM">grbl controller connected</Normal>
+                </Condition>
             </ComponentStream>
         </DeviceStream>
     </Streams>

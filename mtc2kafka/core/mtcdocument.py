@@ -4,13 +4,18 @@ def enrich_with_type(element, parent_type=None):
     # Extract the local name of the tag (ignoring namespace)
     tag_name = element.tag.split('}')[-1] if '}' in element.tag else element.tag
 
-    # If the tag is "Events" or "Samples", set the type for children
-    if tag_name in ["Events", "Samples"]:
+    # If the tag is "Events", "Samples" or "Condition" set the type for children
+    if tag_name in ["Events", "Samples", "Condition"]:
         parent_type = tag_name
 
     # If this element has a 'sequence' attribute, enrich it with the current type
     if "sequence" in element.attrib:
-        element.set("type", parent_type)
+        if "type" in element.attrib:
+            # the key "type" was already in the attribute
+            element.set("type_mtc", element.get("type"))
+            element.set("type", parent_type)
+        else:
+            element.set("type", parent_type)
 
     # Recur for each child element
     for child in element:

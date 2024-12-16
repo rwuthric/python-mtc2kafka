@@ -65,9 +65,18 @@ class TestMTCDocumentMixing(TestCase):
         """ Tests if MTConnect dataItems are found in an MTC Connect stream """
         device = self.testMTCDoc.get_mtc_DevicesStreams(self.mtc_stream.getroot())[1]
         item = self.testMTCDoc.get_dataItems(device)
+        # events
         self.assertEqual(item[0].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Block')
         self.assertEqual(item[0].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '83', 'timestamp': '2023-06-07T19:17:15.169357Z', 'type': 'Events'})
         self.assertEqual(item[0].text, 'Z-5 F100')
         self.assertEqual(item[1].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Block')
         self.assertEqual(item[1].attrib, {'dataItemId': 'block', 'name': 'block', 'sequence': '85', 'timestamp': '2023-06-07T19:17:29.426247Z', 'type': 'Events'})
         self.assertEqual(item[1].text, 'Z-1 F100')
+        # samples
+        self.assertEqual(item[2].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}PathFeedrate')
+        self.assertEqual(item[2].attrib, {'dataItemId': 'Frt', 'sequence': '94', 'subType': 'ACTUAL', 'timestamp': '2024-12-16T01:02:53.577986Z', 'type': 'Samples'})
+        self.assertEqual(item[2].text, '0')
+        # condititons
+        self.assertEqual(item[3].tag, '{urn:mtconnect.org:MTConnectStreams:2.0}Normal')
+        self.assertEqual(item[3].attrib, {'dataItemId': 'grbl', 'nativeCode': 'Connected', 'sequence': '99', 'timestamp': '2024-12-16T01:02:53.578071Z', 'type': 'Condition', 'type_mtc': 'LOGIC_PROGRAM'})
+        self.assertEqual(item[3].text, 'grbl controller connected')
