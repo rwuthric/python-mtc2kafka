@@ -231,7 +231,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
                         uuid = self.mtc_agent_uuid
                     for item in self.get_dataItems(device):
                         if verbose:
-                            print("  " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
+                            print(f"  [{item.attrib['sequence']}] " + self.mtc_dataItem_value_serializer(item).decode('utf-8'))
 
                         # compute Kafka message time stamp
                         timestamp = item.attrib['timestamp'].rstrip('Z')
