@@ -39,7 +39,7 @@ class MTCDocumentMixing():
 
     def sortChildrenBy(self, parent, attr):
         """ sorts children in parent by the attribute attr """
-        parent[:] = sorted(parent, key=lambda child: child.get(attr))
+        return sorted(parent, key=lambda child: int(child.get(attr)))
 
     def get_mtc_header_devices(self, xml_root):
         """ returns MTConnect header from a MTConnect device file """
@@ -64,5 +64,5 @@ class MTCDocumentMixing():
         Sorts the DataItems by sequence
         """
         dataItems = xml_node.findall(".//*[@sequence]")
-        self.sortChildrenBy(dataItems, 'sequence')
-        return dataItems
+        dataItemsSorted = self.sortChildrenBy(dataItems, 'sequence')
+        return dataItemsSorted
