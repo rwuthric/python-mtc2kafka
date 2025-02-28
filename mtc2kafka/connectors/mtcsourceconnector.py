@@ -156,7 +156,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
 
     def get_agent_instance_file(self):
         """ Returns the local file used to store latest agent instance and sequence """
-        return "." + self.mtc_agent.replace(":", "_")
+        return "." + self.mtc_agent.replace(":", "_").replace("/", "_")
 
     def get_latest_stored_agent_instance(self):
         """
