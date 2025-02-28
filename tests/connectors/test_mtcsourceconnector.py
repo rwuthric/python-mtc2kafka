@@ -5,7 +5,7 @@ from mtc2kafka.core import ImproperlyConfigured
 
 
 class MockedMTCSourceConnector(MTCSourceConnector):
-    mtc_agent = 'mocked_agent'
+    mtc_agent = 'http://mocked_agent'
     mtc_agent_uuid = 'mocked_agent_uuid'
     bootstrap_servers = ['localhost:9092']
     kafka_producer_uuid = 'mocked_producer_uuid'
@@ -22,7 +22,7 @@ class TestMTCSourceConnector(unittest.TestCase):
         """ Test constructor """
 
         # Mock attributes
-        MTCSourceConnector.mtc_agent = 'mocked_agent'
+        MTCSourceConnector.mtc_agent = 'http://mocked_agent'
         MTCSourceConnector.bootstrap_servers = ['localhost:9092']
         MTCSourceConnector.kafka_producer_uuid = 'mocked_producer_uuid'
 

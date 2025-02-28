@@ -10,7 +10,7 @@ class MTCAgent(MTCDocumentMixing):
 
     Children have to define the following attributes:
 
-     mtc_agent = 'my_agent:5000'                 # MTConnect agent address
+     mtc_agent = 'http://my_agent:5000'                 # MTConnect agent address
 
     """
 
@@ -41,7 +41,7 @@ class MTCAgent(MTCDocumentMixing):
 
     def get_agent_baseUrl(self):
         """ returns MTConnect agent base URL """
-        return "http://" + self.mtc_agent
+        return self.mtc_agent
 
     def get_agent_uuid(self):
         """
