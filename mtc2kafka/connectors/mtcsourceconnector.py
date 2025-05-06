@@ -278,7 +278,7 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
             try:
                 self.__stream(producer, verbose, interval)
 
-            except requests.exceptions.ChunkedEncodingError:
+            except (requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectionError):
                 if verbose:
                     print("ERROR - MTConnect Agent got disconnected")
                 self.send_agent_availability('UNAVAILABLE')
