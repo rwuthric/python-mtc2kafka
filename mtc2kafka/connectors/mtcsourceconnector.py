@@ -202,8 +202,12 @@ class MTCSourceConnector(MTCAgent, MTCSerializersMixin, MTCDocumentMixing):
             print("Streaming from " + agent_url + '&from=' + str(start_sequence))
             print("to Kafka       " + str(self.bootstrap_servers))
             print("Topic          " + self.mtconnect_devices_topic)
-        req = requests.get(agent_url + '/sample?interval=' + str(interval) +
-                           '&from=' + str(start_sequence), stream=True)
+
+        if start_sequence == 1:
+            req = requests.get(agent_url + '/sample?interval=' + str(interval), stream=True)
+        else:
+            req = requests.get(agent_url + '/sample?interval=' + str(interval) +
+                            '&from=' + str(start_sequence), stream=True)
 
         # Determines devices handled by MTConnect agent
         if verbose:
